@@ -9,6 +9,10 @@ class Battle < Sinatra::Base
   enable :sessions
   helpers AttackHelper
 
+  before do
+  @game = Game.instance
+  end
+
   get '/' do
     erb :index
   end
@@ -20,35 +24,34 @@ class Battle < Sinatra::Base
     else
       player_2 = Player.new(params[:player_2_name])
     end
-    $game = Game.new(player_1, player_2)
+    @game = Game.create(player_1, player_2)
     redirect '/play'
   end
 
   get '/play' do
-    @game = $game
+    @game = Game.instance
     erb :play
   end
 
   post '/attack' do
-    attack_and_redirect($game)
+    attack_and_redirect(@game)
   end
 
   get '/attack' do
-    @game = $game
     erb :attack
   end
 
   post '/switch-turns' do
-    $game.switch_turns
-    if $game.current_turn.computer?
-      attack_and_redirect($game)
+    @game.switch_turns
+    if @game.current_turn.computer?
+      attack_and_redirect(@game)
     else
       redirect '/play'
     end
   end
 
   get '/game-over' do
-    @game = $game
+    @game
     erb :game_over
   end
 
