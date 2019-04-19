@@ -1,35 +1,57 @@
 require 'sinatra/base'
-require_relative 'lib/player'
+require './helpers/attack_helper'
+require './lib/game'
+require './lib/player'
+require './lib/computer_player'
+require './lib/attack'
 
 class Battle < Sinatra::Base
   enable :sessions
+  helpers AttackHelper
 
-  get "/" do
+  get '/' do
     erb :index
   end
 
-  post "/names" do
-    $player_1 = Player.new(params[:player_1_name])
-    $player_2 = Player.new(params[:player_2_name])
-    redirect "/play"
+  post '/names' do
+    player_1 = Player.new(params[:player_1_name])
+    if params[:player_2_name].empty?
+      player_2 = ComputerPlayer.new
+    else
+      player_2 = Player.new(params[:player_2_name])
+    end
+    $game = Game.new(player_1, player_2)
+    redirect '/play'
   end
 
-  get "/play" do
-    @player_1_name = $player_1.name
-    @player_2_name = $player_2.name
+  get '/play' do
+    @game = $game
     erb :play
   end
 
-  get "/attack" do
-    @player_1_name = $player_1.name
-    @player_2_name = $player_2.name
-    Game.new.attack($player_2)
+  post '/attack' do
+    attack_and_redirect($game)
+  end
+
+  get '/attack' do
+    @game = $game
     erb :attack
   end
 
-  # get "/Battle" do
-  #   "Hello battle!"
-  # end
+  post '/switch-turns' do
+    $game.switch_turns
+    if $game.current_turn.computer?
+      attack_and_redirect($game)
+    else
+      redirect '/play'
+    end
+  end
 
+  get '/game-over' do
+    @game = $game
+    erb :game_over
+  end
+
+  # start the server if ruby file executed directly
   run! if app_file == $0
 end
