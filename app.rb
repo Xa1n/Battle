@@ -6,7 +6,6 @@ class Battle < Sinatra::Base
 
   get "/" do
     erb :index
-    #"Testing infrastructure working!"
   end
 
   post "/names" do
@@ -22,15 +21,15 @@ class Battle < Sinatra::Base
   end
 
   get "/attack" do
-    $player_2.attacked
     @player_1_name = $player_1.name
     @player_2_name = $player_2.name
+    Game.new.attack($player_2)
     erb :attack
   end
 
-  get "/Battle" do
-    "Hello battle!"
-  end
+  # get "/Battle" do
+  #   "Hello battle!"
+  # end
 
   run! if app_file == $0
 end
